@@ -1,0 +1,13 @@
+{
+  "dsl_version": "0.1",
+  "selector": {
+    "all_of": [
+      {
+        "graph": "structural",
+        "where": {
+          "function.name": "parse_text"
+        }
+      }
+    ]
+  }
+}
