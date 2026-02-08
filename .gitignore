@@ -1,0 +1,11 @@
+# Python caches
+__pycache__/
+*.pyc
+
+# Test/CI caches
+.pytest_cache/
+.hypothesis/
+
+# Local envs
+.venv/
+
