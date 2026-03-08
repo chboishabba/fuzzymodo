@@ -8,6 +8,8 @@ from .exchange import (
     decision_egress_to_sb_overlay_record,
     evaluate_to_decision_egress,
 )
+from .adapters import emit_fuzzymodo_observer_artifacts
+from .adapters import emit_fuzzymodo_observer_artifacts
 from .replay_artifacts import write_replay_bundle
 from .speculation import (
     DecisionRecord,
@@ -26,6 +28,7 @@ __all__ = [
     "EvaluationResult",
     "DecisionEgress",
     "DecisionLedgerRecord",
+    "emit_fuzzymodo_observer_artifacts",
     "write_replay_bundle",
     "evaluate_to_decision_egress",
     "decision_egress_to_sb_overlay_record",

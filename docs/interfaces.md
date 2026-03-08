@@ -14,6 +14,10 @@
 - Observer-only SB seam:
   `../docs/planning/fuzzymodo_statiBaker_interface_20260309.md` at the suite
   root defines the minimal safe handoff into `StatiBaker`.
+- Future read-only revision-monitor seam:
+  `SensibLaw` history-aware pair reports and candidate-score artifacts may be
+  consumed by reference only for selector/evaluation work; fuzzymodo does not
+  own revision selection or article state.
 
 ## 2. Interaction Model
 1. Parse and validate selector payload.
@@ -42,6 +46,8 @@
 - Transport: Python mapping/list structures in MVP; file/IPC adapter later.
 - Shape: graph-layered facts keyed by clause fields (for example
   `structural.function.name`, `execution.entrypoint`).
+- Future feed may include bounded revision-monitor pair metadata and
+  section-delta refs from `SensibLaw` by reference only.
 - Failure mode: unknown graph or unknown field reported without mutation.
 
 ### Channel D: Decision Egress
