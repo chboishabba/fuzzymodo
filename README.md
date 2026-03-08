@@ -17,6 +17,9 @@ pipeline discussed in `OSS-Fuzz Bug Detection`.
   evaluation in future integration work.
 - ITIR suite consumers can use selector decisions as context for downstream
   ranking and triage workflows.
+- The current `fuzzymodo -> StatiBaker` seam is observer-only and documented in
+  `../docs/planning/fuzzymodo_statiBaker_interface_20260309.md`; it is a
+  DB-backed contract clarification, not a finished adapter.
 
 ## Interaction Flow
 1. Receive selector + optional norm-constraint payloads.
@@ -36,4 +39,5 @@ pipeline discussed in `OSS-Fuzz Bug Detection`.
 
 ## Current Status
 Core evaluator and speculation primitives are implemented. Parser/norm
-invalidation integration remains open.
+invalidation integration remains open. Full decision-record egress and the
+dedicated `StatiBaker` observer adapter remain planned rather than completed.

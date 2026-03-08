@@ -11,6 +11,9 @@
 - Downstream consumers:
   ranking, triage, and replay tools that require deterministic selector
   decisions.
+- Observer-only SB seam:
+  `../docs/planning/fuzzymodo_statiBaker_interface_20260309.md` at the suite
+  root defines the minimal safe handoff into `StatiBaker`.
 
 ## 2. Interaction Model
 1. Parse and validate selector payload.
@@ -47,9 +50,26 @@
   `selector_hash`, `matched`, `matched_clauses`, `rejected_clauses`,
   `errors`, `evaluated_at`.
 - Stability goal: same selector + same facts -> same result payload.
+- Current implementation note:
+  - current code exposes deterministic selector hashing, boolean evaluation,
+    and speculation/retirement primitives
+  - clause-rich decision payload emission is still a planned interface, not yet
+    a fully implemented adapter surface
 
 ### Channel E: Replay Artifact
 - Transport: file artifact (future default path:
   `artifacts/fuzzymodo/runs/<timestamp>/`).
 - Contents: canonical selector JSON, hash, input fact digest, result payload.
 - Purpose: deterministic replay and forensic diffing.
+
+### Channel F: Observer Handoff to `StatiBaker`
+- Transport: DB-backed observer rows or reference-heavy overlay rows only.
+- Contract:
+  - suite-level seam note:
+    `docs/planning/fuzzymodo_statiBaker_interface_20260309.md`
+- Allowed role:
+  - emit append-only DB rows about selector evaluation or decision lifecycle
+  - attach selector refs to existing SB overlay rows
+- Forbidden role:
+  - transfer selector DSL or norm constraints into SB as canonical state or SB
+    policy
