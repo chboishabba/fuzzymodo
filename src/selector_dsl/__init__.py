@@ -2,6 +2,12 @@
 
 from .canonical import canonicalize_selector, selector_hash
 from .evaluator import evaluate_selector, evaluate_selector_verbose
+from .decision_ledger_sqlite import DecisionLedgerRecord
+from .exchange import (
+    DecisionEgress,
+    decision_egress_to_sb_overlay_record,
+    evaluate_to_decision_egress,
+)
 from .speculation import (
     DecisionRecord,
     SpeculationBranch,
@@ -17,9 +23,10 @@ __all__ = [
     "evaluate_selector_verbose",
     "ClauseEvaluation",
     "EvaluationResult",
-    "evaluate_selector_verbose",
-    "ClauseEvaluation",
-    "EvaluationResult",
+    "DecisionEgress",
+    "DecisionLedgerRecord",
+    "evaluate_to_decision_egress",
+    "decision_egress_to_sb_overlay_record",
     "DecisionRecord",
     "SpeculationBranch",
     "choose_dominant_branch",
