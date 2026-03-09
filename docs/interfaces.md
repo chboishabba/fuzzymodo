@@ -16,8 +16,10 @@
   root defines the minimal safe handoff into `StatiBaker`.
 - Future read-only revision-monitor seam:
   `SensibLaw` history-aware pair reports and candidate-score artifacts may be
-  consumed by reference only for selector/evaluation work; fuzzymodo does not
-  own revision selection or article state.
+  consumed by reference only for selector/evaluation work; contested-region
+  graph summaries/cycle refs may later join that lane by reference only;
+  fuzzymodo does not own revision selection, article state, or graph
+  production.
 
 ## 2. Interaction Model
 1. Parse and validate selector payload.
