@@ -8,6 +8,9 @@
 - Upstream facts providers:
   graph fact emitters in ITIR-suite components (including future
   `casey-git-clone/` adapters).
+- Casey-specific cross-project contract:
+  `../docs/planning/casey_fuzzymodo_interface_contract_20260319.md` at the
+  suite root defines the minimal Casey lattice export and advisory return shape.
 - Downstream consumers:
   ranking, triage, and replay tools that require deterministic selector
   decisions.
@@ -48,6 +51,9 @@
 - Transport: Python mapping/list structures in MVP; file/IPC adapter later.
 - Shape: graph-layered facts keyed by clause fields (for example
   `structural.function.name`, `execution.entrypoint`).
+- Current Casey-specific feed:
+  `casey.facts.v1` exported from Casey runtime/tree/workspace/build state and
+  consumed read-only by `selector_dsl.casey_adapter.evaluate_casey_export(...)`.
 - Future feed may include bounded revision-monitor pair metadata and
   section-delta refs from `SensibLaw` by reference only.
 - Failure mode: unknown graph or unknown field reported without mutation.
@@ -57,12 +63,15 @@
 - Intended fields:
   `selector_hash`, `matched`, `matched_clauses`, `rejected_clauses`,
   `errors`, `evaluated_at`.
+- Current Casey-specific advisory egress:
+  `fuzzymodo.casey.advisory.v1` with per-path rankings, explicit gap payloads,
+  and deterministic `evaluation_digest`.
 - Stability goal: same selector + same facts -> same result payload.
 - Current implementation note:
   - current code exposes deterministic selector hashing, boolean evaluation,
-    and speculation/retirement primitives
-  - clause-rich decision payload emission is still a planned interface, not yet
-    a fully implemented adapter surface
+    speculation/retirement primitives, and a minimal Casey-specific advisory
+    adapter
+  - richer general decision-record/replay payload expansion remains planned
 
 ### Channel E: Replay Artifact
 - Transport: file artifact (future default path:

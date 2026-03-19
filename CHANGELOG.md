@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-03-19
+- Added a suite-level planning reference for the Casey -> fuzzymodo contract
+  (`docs/planning/casey_fuzzymodo_interface_contract_20260319.md`) to lock the
+  expected Casey lattice export and fuzzymodo advisory result shape before
+  implementation.
+- Implemented a minimal Casey-specific advisory adapter in
+  `src/selector_dsl/casey_adapter.py` consuming `casey.facts.v1` and emitting
+  `fuzzymodo.casey.advisory.v1` with deterministic rankings, gap payloads, and
+  an `evaluation_digest`.
+- Added tests for deterministic Casey advisory output and Casey CLI export
+  roundtrip consumption.
+
 ## 2026-03-09
 - Clarified the intended `fuzzymodo -> StatiBaker` seam as observer-only via
   suite planning note `docs/planning/fuzzymodo_statiBaker_interface_20260309.md`.
