@@ -41,3 +41,8 @@ pipeline discussed in `OSS-Fuzz Bug Detection`.
 Core evaluator and speculation primitives are implemented. Parser/norm
 invalidation integration remains open. Full decision-record egress and the
 dedicated `StatiBaker` observer adapter remain planned rather than completed.
+The Casey advisory seam now exists as a deterministic, read-only path-local
+adapter that consumes `casey.facts.v1`, ranks candidates conservatively, and
+emits explanation-first divergence summaries rather than candidate-count-only
+gaps. Optional candidate feature bags may sharpen those summaries without
+becoming required contract fields.

@@ -1,6 +1,16 @@
 # Changelog
 
 ## 2026-03-19
+- Upgraded the Casey-specific advisory adapter from count-based gap reporting to
+  explanation-first divergence summaries with structured gap items,
+  primary-axis reporting, and suggested next actions.
+- Added optional candidate feature-bag support to the Casey advisory seam so
+  future SL/LCE-derived signals can refine path-local divergence analysis
+  without changing authority boundaries.
+- Extended Casey export/advisory tests to cover feature-bag propagation and
+  feature-context divergence behavior.
+
+## 2026-03-19
 - Added a suite-level planning reference for the Casey -> fuzzymodo contract
   (`docs/planning/casey_fuzzymodo_interface_contract_20260319.md`) to lock the
   expected Casey lattice export and fuzzymodo advisory result shape before
