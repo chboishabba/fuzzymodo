@@ -5,6 +5,16 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
+try:
+    from itir_overlay_flags import as_derived_only
+    from itir_overlay_flags import assert_not_derived_only
+except ImportError:  # pragma: no cover - fallback when helper not on path
+    import sys
+
+    ROOT = Path(__file__).resolve().parents[3]
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from itir_overlay_flags import as_derived_only, assert_not_derived_only
 
 from .decision_ledger_sqlite import DecisionLedgerRecord, upsert_decision
 from .exchange import DecisionEgress, evaluate_to_decision_egress
@@ -270,7 +280,7 @@ def codex_trace_decision_to_sb_overlay_record(
         }
     )
 
-    return {
+    overlay = {
         "activity_event_id": str(activity_event_id),
         "annotation_id": str(annotation_id),
         "provenance": overlay_provenance,
@@ -283,6 +293,10 @@ def codex_trace_decision_to_sb_overlay_record(
         "artifact_refs": artifact_refs,
         "evidence_refs": list(decision.evidence_refs),
     }
+    overlay = as_derived_only(overlay, reason="codex_trace_overlay")
+    # Ensure any consumer of this function is explicit about promoting derived overlays.
+    assert_not_derived_only(overlay, allow_derived=True)
+    return overlay
 
 
 def emit_codex_trace_observer_artifacts(

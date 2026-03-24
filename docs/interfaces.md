@@ -84,6 +84,11 @@
 - Contract:
   - suite-level seam note:
     `docs/planning/fuzzymodo_statiBaker_interface_20260309.md`
+  - bridge guardrail checklist:
+    see `../../TODO.md` (TextGraphs/lexer bridge section) and use
+    `itir_overlay_flags.as_derived_only` to mark any overlay payloads that are
+    not canonical; consumers must call `itir_overlay_flags.assert_not_derived_only`
+    unless an explicit opt-in flag allows derived overlays.
 - Allowed role:
   - emit append-only DB rows about selector evaluation or decision lifecycle
   - attach selector refs to existing SB overlay rows

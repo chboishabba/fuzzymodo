@@ -36,6 +36,11 @@ pipeline discussed in `OSS-Fuzz Bug Detection`.
 - Output channel: canonical selector hash + normalized selector JSON.
 - Output channel: evaluation result bundle (`matched`, matched clauses,
   rejection reasons).
+- Overlay discipline:
+  - Mark any non-canonical observer/overlay payload with
+    `itir_overlay_flags.as_derived_only(...)` and include a reason.
+  - Consumers must call `itir_overlay_flags.assert_not_derived_only(..., allow_derived=True)`
+    to make the opt-in explicit; default should reject promotion of derived overlays.
 
 ## Current Status
 Core evaluator and speculation primitives are implemented. Parser/norm

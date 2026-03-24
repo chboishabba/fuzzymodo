@@ -112,3 +112,5 @@ def test_codex_trace_overlay_record_stays_reference_only() -> None:
     assert overlay["observer_kind"] == "fuzzymodo_codex_trace_v1"
     assert "selector" not in overlay
     assert "norm_constraints" not in overlay
+    assert overlay["canonical_status"] == "derived_only"
+    assert "derived_only" in overlay["overlay_flags"]
