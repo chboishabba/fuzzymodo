@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .decision_ledger_sqlite import DecisionLedgerRecord, upsert_decision
+from .codex_trace import emit_codex_trace_observer_artifacts
 from .exchange import (
     DecisionEgress,
     decision_egress_to_sb_overlay_record,
@@ -98,3 +99,9 @@ def emit_fuzzymodo_observer_artifacts(
     )
 
     return overlay
+
+
+__all__ = [
+    "emit_fuzzymodo_observer_artifacts",
+    "emit_codex_trace_observer_artifacts",
+]
