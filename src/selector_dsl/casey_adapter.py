@@ -17,6 +17,107 @@ def _stable_hash(value: Any) -> str:
     return sha256(_canonical_json(value).encode("utf-8")).hexdigest()
 
 
+def _validation_errors(casey_export: Any) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(casey_export, Mapping):
+        return ["casey export payload must be an object"]
+
+    if casey_export.get("casey_export_version") != "casey.facts.v1":
+        errors.append("casey export must set casey_export_version='casey.facts.v1'")
+
+    workspace = casey_export.get("workspace")
+    if not isinstance(workspace, Mapping):
+        return errors + ["casey export missing workspace object"]
+
+    for key in ["ws_id", "user", "head_tree_id", "policy", "selection"]:
+        if key not in workspace:
+            errors.append(f"workspace missing required key: {key}")
+
+    policy = workspace.get("policy")
+    if policy is not None and not isinstance(policy, Mapping):
+        errors.append("workspace.policy must be an object")
+
+    selection = workspace.get("selection")
+    if not isinstance(selection, list):
+        errors.append("workspace.selection must be a list")
+    else:
+        for i, item in enumerate(selection):
+            if not isinstance(item, Mapping):
+                errors.append(f"workspace.selection[{i}] must be an object")
+            elif "path" not in item or "selected_fv_id" not in item:
+                errors.append(f"workspace.selection[{i}] must include path and selected_fv_id")
+
+    paths = casey_export.get("paths")
+    if not isinstance(paths, list):
+        return errors + ["paths must be a list"]
+
+    for i, path_entry in enumerate(paths):
+        if not isinstance(path_entry, Mapping):
+            errors.append(f"paths[{i}] must be an object")
+            continue
+
+        if not isinstance(path_entry.get("path"), str):
+            errors.append(f"paths[{i}].path must be a string")
+
+        candidates = path_entry.get("candidates")
+        if not isinstance(candidates, list):
+            errors.append(f"paths[{i}].candidates must be a list")
+            continue
+
+        candidate_count = path_entry.get("candidate_count")
+        if candidate_count is not None:
+            try:
+                candidate_count_int = int(candidate_count)
+            except (TypeError, ValueError):
+                errors.append(f"paths[{i}].candidate_count must be integer-like")
+            else:
+                if candidate_count_int != len(candidates):
+                    errors.append(
+                        f"paths[{i}].candidate_count ({candidate_count}) does not match candidate list length ({len(candidates)})"
+                    )
+
+        for j, candidate in enumerate(candidates):
+            if not isinstance(candidate, Mapping):
+                errors.append(f"paths[{i}].candidates[{j}] must be an object")
+                continue
+            for key in ["fv_id", "blob_id", "author", "created_at"]:
+                if key not in candidate:
+                    errors.append(f"paths[{i}].candidates[{j}].{key} is required")
+
+    return errors
+
+
+def _validate_casey_export_payload(casey_export: Any) -> None:
+    errors = _validation_errors(casey_export)
+    if errors:
+        raise ValueError("Invalid Casey export payload: " + "; ".join(errors))
+
+
+def _validate_casey_advisory_payload(advisory: Any) -> None:
+    if not isinstance(advisory, Mapping):
+        raise ValueError("Advisory payload must be an object")
+
+    if advisory.get("fuzzymodo_result_version") != "fuzzymodo.casey.advisory.v1":
+        raise ValueError("Advisory payload missing required fuzzymodo.result version")
+
+    path_results = advisory.get("path_results")
+    if not isinstance(path_results, list):
+        raise ValueError("Advisory payload missing path_results list")
+
+    for result in path_results:
+        if not isinstance(result, Mapping):
+            raise ValueError("Each path_result must be an object")
+        for key in ["path", "recommended_fv_id", "candidate_rankings", "gap"]:
+            if key not in result:
+                raise ValueError(f"path_result missing required key: {key}")
+        gap = result["gap"]
+        if not isinstance(gap, Mapping):
+            raise ValueError("path_result.gap must be an object")
+        for key in ["gap_kind", "severity", "explanation", "primary_axis", "gap_items", "suggested_actions"]:
+            if key not in gap:
+                raise ValueError(f"path_result.gap missing required key: {key}")
+
+
 @dataclass(frozen=True)
 class CandidateScore:
     fv_id: str
@@ -111,7 +212,16 @@ def _gap_payload(
     *,
     recommended_fv_id: str | None,
 ) -> dict[str, Any]:
-    candidate_count = int(path_entry.get("candidate_count", 0))
+    candidates = [
+        candidate
+        for candidate in (path_entry.get("candidates") or [])
+        if isinstance(candidate, Mapping)
+    ]
+    raw_candidate_count = path_entry.get("candidate_count")
+    if raw_candidate_count is None:
+        candidate_count = len(candidates)
+    else:
+        candidate_count = int(raw_candidate_count)
     if candidate_count <= 1:
         return {
             "gap_kind": "none",
@@ -121,11 +231,6 @@ def _gap_payload(
             "gap_items": [],
             "suggested_actions": [],
         }
-    candidates = [
-        candidate
-        for candidate in (path_entry.get("candidates") or [])
-        if isinstance(candidate, Mapping)
-    ]
     gap_items: list[dict[str, Any]] = [
         {
             "kind": "unresolved_multiplicity",
@@ -222,9 +327,7 @@ def evaluate_casey_export(
 ) -> dict[str, Any]:
     """Consume `casey.facts.v1` and emit `fuzzymodo.casey.advisory.v1`."""
 
-    export_version = casey_export.get("casey_export_version")
-    if export_version != "casey.facts.v1":
-        raise ValueError(f"Unsupported Casey export version: {export_version!r}")
+    _validate_casey_export_payload(casey_export)
 
     workspace = casey_export.get("workspace") or {}
     policy = workspace.get("policy") or {}
@@ -273,7 +376,7 @@ def evaluate_casey_export(
     if evaluated_at is None:
         evaluated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    return {
+    advisory = {
         "fuzzymodo_result_version": "fuzzymodo.casey.advisory.v1",
         "tree_id": casey_export.get("tree_id"),
         "workspace_id": workspace.get("ws_id"),
@@ -287,3 +390,5 @@ def evaluate_casey_export(
             }
         ),
     }
+    _validate_casey_advisory_payload(advisory)
+    return advisory

@@ -168,3 +168,152 @@ def test_casey_advisory_reports_feature_context_divergence_when_present() -> Non
     assert gap["gap_kind"] == "candidate_divergence"
     assert gap["primary_axis"] == "feature_context"
     assert any(item["kind"] == "feature_context_divergence" for item in gap["gap_items"])
+
+
+def test_casey_advisory_payload_shape_is_stable() -> None:
+    casey_export = {
+        "casey_export_version": "casey.facts.v1",
+        "tree_id": "tree-1",
+        "workspace": {
+            "ws_id": "alice",
+            "user": "alice",
+            "head_tree_id": "tree-1",
+            "policy": {"prefer_author": "alice", "tie_break": "stable_hash"},
+            "selection": [{"path": "src/main.c", "selected_fv_id": "fv-a"}],
+        },
+        "paths": [
+            {
+                "path": "src/main.c",
+                "candidate_count": 1,
+                "selected_fv_id": "fv-a",
+                "candidates": [
+                    {
+                        "fv_id": "fv-a",
+                        "blob_id": "blob-a",
+                        "author": "alice",
+                        "created_at": "2026-03-19T10:00:00Z",
+                        "base_fv_id": "fv-base",
+                        "summary": None,
+                        "features": {
+                            "_version": "casey.features.v1",
+                            "derived.has_lineage": False,
+                        },
+                    }
+                ],
+            }
+        ],
+        "build": None,
+    }
+
+    advisory = evaluate_casey_export(casey_export, evaluated_at="2026-03-19T13:00:00Z")
+
+    assert advisory["fuzzymodo_result_version"] == "fuzzymodo.casey.advisory.v1"
+    assert set(advisory) == {
+        "fuzzymodo_result_version",
+        "tree_id",
+        "workspace_id",
+        "path_results",
+        "evaluated_at",
+        "evaluation_digest",
+    }
+    assert advisory["path_results"][0]["gap"]["gap_kind"] == "none"
+    gap = advisory["path_results"][0]["gap"]
+    assert gap["primary_axis"] == "resolved"
+    assert isinstance(gap["gap_items"], list)
+    assert isinstance(gap["suggested_actions"], list)
+
+
+def test_casey_advisory_tolerates_missing_candidate_count() -> None:
+    casey_export = {
+        "casey_export_version": "casey.facts.v1",
+        "tree_id": "tree-1",
+        "workspace": {
+            "ws_id": "alice",
+            "user": "alice",
+            "head_tree_id": "tree-1",
+            "policy": {"prefer_author": "alice", "tie_break": "stable_hash"},
+            "selection": [{"path": "src/main.c", "selected_fv_id": "fv-a"}],
+        },
+        "paths": [
+            {
+                "path": "src/main.c",
+                "selected_fv_id": "fv-a",
+                "candidates": [
+                    {
+                        "fv_id": "fv-a",
+                        "blob_id": "blob-a",
+                        "author": "alice",
+                        "created_at": "2026-03-19T10:00:00Z",
+                        "base_fv_id": "fv-base",
+                        "summary": None,
+                        "features": {
+                            "_version": "casey.features.v1",
+                            "derived.has_lineage": True,
+                        },
+                    },
+                    {
+                        "fv_id": "fv-b",
+                        "blob_id": "blob-b",
+                        "author": "alice",
+                        "created_at": "2026-03-19T10:01:00Z",
+                        "base_fv_id": "fv-base",
+                        "summary": None,
+                        "features": {
+                            "_version": "casey.features.v1",
+                            "derived.has_lineage": True,
+                        },
+                    },
+                ],
+            }
+        ],
+        "build": None,
+    }
+
+    advisory = evaluate_casey_export(casey_export, evaluated_at="2026-03-19T13:00:00Z")
+    gap = advisory["path_results"][0]["gap"]
+
+    assert gap["gap_kind"] == "candidate_divergence"
+    assert any(
+        item["kind"] == "unresolved_multiplicity" and item["candidate_count"] == 2
+        for item in gap["gap_items"]
+    )
+
+
+def test_casey_advisory_rejects_invalid_export_payload() -> None:
+    casey_export = {
+        "casey_export_version": "casey.facts.v1",
+        "tree_id": "tree-1",
+        "workspace": {
+            "ws_id": "alice",
+            "user": "alice",
+            "head_tree_id": "tree-1",
+            "policy": {"prefer_author": "alice", "tie_break": "stable_hash"},
+            "selection": [{"path": "src/main.c", "selected_fv_id": "fv-a"}],
+        },
+        "paths": [
+            {
+                "path": "src/main.c",
+                "candidate_count": 2,
+                "selected_fv_id": "fv-a",
+                "candidates": [
+                    {
+                        "fv_id": "fv-a",
+                        "blob_id": "blob-a",
+                        "author": "alice",
+                        "created_at": "2026-03-19T10:00:00Z",
+                        "base_fv_id": None,
+                        "summary": None,
+                        "features": {"_version": "casey.features.v1"},
+                    }
+                ],
+            }
+        ],
+        "build": None,
+    }
+
+    try:
+        evaluate_casey_export(casey_export, evaluated_at="2026-03-19T13:00:00Z")
+    except ValueError as exc:
+        assert "candidate_count" in str(exc)
+    else:
+        raise AssertionError("mismatched candidate_count should fail export validation")
