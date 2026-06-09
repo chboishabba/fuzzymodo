@@ -51,3 +51,5 @@ adapter that consumes `casey.facts.v1`, ranks candidates conservatively, and
 emits explanation-first divergence summaries rather than candidate-count-only
 gaps. Optional candidate feature bags may sharpen those summaries without
 becoming required contract fields.
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/chboishabba/fuzzymodo)
